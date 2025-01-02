@@ -1,0 +1,7 @@
+[workspace]
+resolver = "2"
+members = [
+  "tls-impersonate",
+  "tls-impersonate-boring",
+  "tls-impersonate-openssl",
+]
