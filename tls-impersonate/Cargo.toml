@@ -1,0 +1,12 @@
+[package]
+name = "tls-impersonate"
+version = "0.1.0"
+authors = ["Caido Labs Inc. <dev@caido.io>"]
+description = "Library for TLS impersonification"
+repository = "https://github.com/caido/tls-impersonate"
+license = "MIT"
+edition = "2021"
+
+[dependencies]
+itertools = "0.14"
+typed-builder = "0.20"
