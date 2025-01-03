@@ -49,19 +49,11 @@ pub struct OpensslSettings {
     #[builder(default, setter(into))]
     pub max_tls_version: Option<TlsVersion>,
 
-    /// Enable OCSP stapling.
-    ///
-    /// Online Certificate Status Protocol (OCSP) stapling allows the server to include ("staple") its OCSP response
-    /// during the TLS handshake, eliminating the need for clients to separately contact the OCSP responder to verify
-    /// the server's certificate status, improving performance and privacy.
-    #[builder(default = false)]
-    pub enable_ocsp_stapling: bool,
-
     /// The curves to use.
     ///
     /// Specifies which elliptic curves the client supports for key exchange during TLS handshake.
-    #[builder(default, setter(into))]
-    pub curves: Option<Cow<'static, [SslCurve]>>,
+    #[builder(default, setter(transform = |input: &[SslCurve]| Some(Cow::Owned(SslCurve::serialize(input)))))]
+    pub curves: Option<Cow<'static, str>>,
 
     /// The signature algorithms to use.
     ///
@@ -77,16 +69,22 @@ pub struct OpensslSettings {
     #[builder(default, setter(transform = |input: &[CipherSuite]| Some(Cow::Owned(CipherSuite::serialize(input)))))]
     pub ciphers: Option<Cow<'static, str>>,
 
+    /// Enable OCSP stapling.
+    ///
+    /// Online Certificate Status Protocol (OCSP) stapling allows the server to include ("staple") its OCSP response
+    /// during the TLS handshake, eliminating the need for clients to separately contact the OCSP responder to verify
+    /// the server's certificate status, improving performance and privacy.
+    #[builder(default = false)]
+    pub enable_ocsp_stapling: bool,
+
     /// Enable signed cert timestamps (SCT).
     ///
     /// SCTs provide proof that certificates are publicly logged in Certificate Transparency logs,
     /// helping detect misissued certificates and improving TLS security.
+    ///
+    /// Enabling this will also enable OCSP stapling.
     #[builder(default = false)]
     pub enable_signed_cert_timestamps: bool,
-
-    /// The key shares length limit.
-    #[builder(default, setter(into))]
-    pub key_shares_length_limit: Option<u8>,
 
     /// Encrypt then MAC
     ///
@@ -118,7 +116,6 @@ impl From<TlsSettings> for OpensslSettings {
             signature_algorithms: settings.signature_algorithms,
             ciphers: settings.ciphers,
             enable_signed_cert_timestamps: settings.enable_signed_cert_timestamps,
-            key_shares_length_limit: settings.key_shares_length_limit,
             encrypt_then_mac: settings.encrypt_then_mac,
             padding: settings.padding,
         }

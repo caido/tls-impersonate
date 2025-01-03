@@ -41,6 +41,11 @@ impl OpensslConnector {
             builder.set_max_proto_version(Some(ssl_version(version)))?;
         }
 
+        // Set the curves list
+        if let Some(curves) = settings.curves.as_ref() {
+            builder.set_groups_list(curves)?;
+        }
+
         // Set the supported signature algorithms
         if let Some(sigalgs) = settings.signature_algorithms.as_ref() {
             builder.set_sigalgs_list(sigalgs)?;
@@ -49,6 +54,11 @@ impl OpensslConnector {
         // Set the cipher list if it is set.
         if let Some(ciphers) = settings.ciphers.as_ref() {
             builder.set_cipher_list(ciphers)?;
+        }
+
+        // Enable OCSP stapling if it is set.
+        if settings.enable_ocsp_stapling {
+            builder.enable_ocsp_stapling()?;
         }
 
         // Enable signed cert timestamps if it is set.

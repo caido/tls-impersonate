@@ -10,7 +10,7 @@ async fn test_curl_7_61_1() {
 
     println!("{:?}", settings);
 
-    connect("localhost:443", "localhost", settings).await;
+    connect(server.addr(), "localhost", settings).await;
 
     assert_eq!(
         server.last_ja4().unwrap(),

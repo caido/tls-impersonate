@@ -41,6 +41,7 @@ pub mod curl_7_61_1 {
             .alpn_protos(&[])
             .ciphers(CIPHERS)
             .signature_algorithms(SIGNATURE_ALGORITHMS)
+            .enable_ocsp_stapling(true)
             .enable_signed_cert_timestamps(true)
             .encrypt_then_mac(false)
             .padding(false)
