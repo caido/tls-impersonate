@@ -3,15 +3,15 @@ use std::borrow::Cow;
 use typed_builder::TypedBuilder;
 
 use crate::{
-    AlpnProtocol, CertCompressionAlgorithm, CipherSuite, ExtensionType, SignatureAlgorithm,
-    SslCurve, TlsVersion,
+    AlpnProtocol, CertCompressionAlgorithm, CertsStore, CipherSuite, ExtensionType,
+    SignatureAlgorithm, SslCurve, TlsVersion,
 };
 
 #[derive(TypedBuilder, Default, Clone, Debug)]
 pub struct TlsSettings {
     /// Root certificates store.
-    // #[builder(default)]
-    // pub root_certs_store: RootCertsStore,
+    #[builder(default)]
+    pub certs_store: Option<CertsStore>,
 
     /// Verify certificates.
     #[builder(default = true)]
@@ -61,14 +61,14 @@ pub struct TlsSettings {
     /// Permute extensions.
     ///
     /// Allow extensions to be permuted in the ClientHello message.
-    #[builder(default, setter(into))]
+    #[builder(default, setter(transform = |input: bool| Some(input)))]
     pub permute_extensions: Option<bool>,
 
     /// Enable grease enabled.
     ///
     /// GREASE (Generate Random Extensions And Sustain Extensibility) adds random values in TLS handshakes
     /// to ensure implementations properly handle unknown values and remain extensible for future changes.
-    #[builder(default, setter(into))]
+    #[builder(default, setter(transform = |input: bool| Some(input)))]
     pub grease_enabled: Option<bool>,
 
     /// The curves to use.

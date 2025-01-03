@@ -15,7 +15,12 @@ pub struct OpensslConnector {
 
 impl OpensslConnector {
     pub fn new(settings: &OpensslSettings) -> Result<Self> {
-        let mut builder = SslConnector::builder(SslMethod::tls_client()).unwrap();
+        let mut builder = SslConnector::builder(SslMethod::tls_client())?;
+
+        // Set the certs store
+        if let Some(cert_store) = settings.certs_store.as_ref() {
+            builder.configure_certs_store(cert_store)?;
+        }
 
         // Set the verification mode
         if settings.certs_verification {

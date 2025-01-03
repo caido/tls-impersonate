@@ -1,15 +1,18 @@
 use std::borrow::Cow;
 
+use openssl::error::ErrorStack;
 use tls_impersonate::{
     AlpnProtocol, CipherSuite, SignatureAlgorithm, SslCurve, TlsSettings, TlsVersion,
 };
 use typed_builder::TypedBuilder;
 
-#[derive(TypedBuilder, Default, Clone, Debug)]
+use crate::OpensslCertsStore;
+
+#[derive(TypedBuilder, Default, Debug)]
 pub struct OpensslSettings {
     /// Root certificates store.
-    // #[builder(default)]
-    // pub root_certs_store: RootCertsStore,
+    #[builder(default)]
+    pub certs_store: Option<OpensslCertsStore>,
 
     /// Verify certificates.
     #[builder(default = true)]
@@ -102,9 +105,13 @@ pub struct OpensslSettings {
     pub padding: Option<bool>,
 }
 
-impl From<TlsSettings> for OpensslSettings {
-    fn from(settings: TlsSettings) -> Self {
-        Self {
+impl OpensslSettings {
+    pub fn new(settings: TlsSettings) -> Result<Self, ErrorStack> {
+        Ok(Self {
+            certs_store: settings
+                .certs_store
+                .map(OpensslCertsStore::new)
+                .transpose()?,
             certs_verification: settings.certs_verification,
             tls_sni: settings.tls_sni,
             alpn_protos: settings.alpn_protos,
@@ -118,6 +125,31 @@ impl From<TlsSettings> for OpensslSettings {
             enable_signed_cert_timestamps: settings.enable_signed_cert_timestamps,
             encrypt_then_mac: settings.encrypt_then_mac,
             padding: settings.padding,
-        }
+        })
+    }
+
+    pub fn try_clone(&self) -> Result<Self, ErrorStack> {
+        let certs_store = self
+            .certs_store
+            .as_ref()
+            .map(|certs_store| certs_store.try_clone())
+            .transpose()?;
+
+        Ok(Self {
+            certs_store,
+            certs_verification: self.certs_verification,
+            tls_sni: self.tls_sni,
+            alpn_protos: self.alpn_protos.clone(),
+            session_ticket: self.session_ticket,
+            min_tls_version: self.min_tls_version,
+            max_tls_version: self.max_tls_version,
+            enable_ocsp_stapling: self.enable_ocsp_stapling,
+            curves: self.curves.clone(),
+            signature_algorithms: self.signature_algorithms.clone(),
+            ciphers: self.ciphers.clone(),
+            enable_signed_cert_timestamps: self.enable_signed_cert_timestamps,
+            encrypt_then_mac: self.encrypt_then_mac,
+            padding: self.padding,
+        })
     }
 }

@@ -1,6 +1,8 @@
 use crate::{CipherSuite, SignatureAlgorithm, TlsSettings, TlsVersion};
 
 pub mod curl_7_61_1 {
+    use crate::CertsStore;
+
     use super::*;
 
     const CIPHERS: &[CipherSuite] = &[
@@ -33,8 +35,13 @@ pub mod curl_7_61_1 {
         SignatureAlgorithm::ECDSA_SHA1,
     ];
 
-    pub fn settings() -> TlsSettings {
+    pub fn settings(with_certs: bool) -> TlsSettings {
         TlsSettings::builder()
+            .certs_store(if with_certs {
+                Some(CertsStore::load())
+            } else {
+                None
+            })
             .min_tls_version(TlsVersion::TLS1_0)
             .max_tls_version(TlsVersion::TLS1_3)
             .session_ticket(false)

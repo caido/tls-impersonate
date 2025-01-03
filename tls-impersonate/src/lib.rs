@@ -1,4 +1,5 @@
 pub use self::alpn::AlpnProtocol;
+pub use self::certs_store::CertsStore;
 pub use self::cipher::CipherSuite;
 pub use self::compression::CertCompressionAlgorithm;
 pub use self::curve::SslCurve;
@@ -8,6 +9,7 @@ pub use self::signature::SignatureAlgorithm;
 pub use self::version::TlsVersion;
 
 mod alpn;
+mod certs_store;
 mod cipher;
 pub mod client;
 mod compression;

@@ -7,6 +7,15 @@ repository = "https://github.com/caido/tls-impersonate"
 license = "MIT"
 edition = "2021"
 
+[features]
+default = []
+
+native-certs = ["rustls-native-certs"]
+webpki-certs = ["webpki-root-certs"]
+
 [dependencies]
+rustls-pki-types = "1.10"
+rustls-native-certs = { version = "0.8", optional = true }
+webpki-root-certs = { version = "0.26", optional = true }
 itertools = "0.14"
 typed-builder = "0.20"

@@ -1,41 +1,26 @@
-use std::pin::Pin;
+use std::{error::Error, pin::Pin};
 
 use tls_impersonate::TlsSettings;
-use tls_impersonate_openssl::OpensslConnector;
+use tls_impersonate_openssl::{OpensslConnector, OpensslSettings};
 use tokio::net::{TcpStream, ToSocketAddrs};
 use tokio_openssl::SslStream;
 
-pub async fn connect<A: ToSocketAddrs>(addr: A, domain: &str, settings: TlsSettings) {
-    // Connect to mock server
-    let stream = TcpStream::connect(addr).await.unwrap();
-
-    // Prepare ssl
-    let connector = OpensslConnector::new(&settings.into()).unwrap();
-    let configuration = connector.configure().unwrap();
-    let ssl = configuration.into_ssl(domain).unwrap();
-    let mut stream = SslStream::new(ssl, stream).unwrap();
-
-    // Connect
-    let res = Pin::new(&mut stream).connect().await;
-    assert!(res.is_err());
-}
-
-pub async fn connect2<A: ToSocketAddrs>(
+pub async fn connect<A: ToSocketAddrs>(
     addr: A,
     domain: &str,
     settings: TlsSettings,
-) -> SslStream<TcpStream> {
+) -> Result<SslStream<TcpStream>, Box<dyn Error>> {
     // Connect to mock server
     let stream = TcpStream::connect(addr).await.unwrap();
 
     // Prepare ssl
-    let connector = OpensslConnector::new(&settings.into()).unwrap();
+    let settings = OpensslSettings::new(settings).unwrap();
+    let connector = OpensslConnector::new(&settings).unwrap();
     let configuration = connector.configure().unwrap();
     let ssl = configuration.into_ssl(domain).unwrap();
     let mut stream = SslStream::new(ssl, stream).unwrap();
 
     // Connect
-    Pin::new(&mut stream).connect().await.unwrap();
-
-    stream
+    Pin::new(&mut stream).connect().await?;
+    Ok(stream)
 }
