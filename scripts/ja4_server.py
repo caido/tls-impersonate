@@ -7,42 +7,43 @@ import hashlib
 def get_extension_name(ext_type: int) -> str:
     # Common TLS extensions mapping
     extensions = {
-        0: "server_name",
-        1: "max_fragment_length",
-        2: "client_certificate_url",
-        3: "trusted_ca_keys",
-        4: "truncated_hmac",
-        5: "status_request",
-        6: "user_mapping",
-        7: "client_authz",
-        8: "server_authz",
-        9: "cert_type",
-        10: "supported_groups",
-        11: "ec_point_formats",
-        13: "signature_algorithms",
-        14: "use_srtp",
-        15: "heartbeat",
-        16: "application_layer_protocol_negotiation",
-        17: "status_request_v2",
-        18: "signed_certificate_timestamp",
-        19: "client_certificate_type",
-        20: "server_certificate_type",
-        21: "padding",
-        22: "encrypt_then_mac",
-        23: "extended_master_secret",
-        24: "token_binding",
-        25: "cached_info",
-        35: "session_ticket",
-        41: "pre_shared_key",
-        42: "early_data",
-        43: "supported_versions",
-        44: "cookie",
-        45: "psk_key_exchange_modes",
-        47: "certificate_authorities",
-        48: "oid_filters",
-        49: "post_handshake_auth",
-        50: "signature_algorithms_cert",
-        51: "key_share",
+        0x0000: "server_name",
+        0x0001: "max_fragment_length",
+        0x0002: "client_certificate_url",
+        0x0003: "trusted_ca_keys",
+        0x0004: "truncated_hmac",
+        0x0005: "status_request",
+        0x0006: "user_mapping",
+        0x0007: "client_authz",
+        0x0008: "server_authz",
+        0x0009: "cert_type",
+        0x000A: "supported_groups",
+        0x000B: "ec_point_formats",
+        0x000D: "signature_algorithms",
+        0x000E: "use_srtp",
+        0x000F: "heartbeat",
+        0x0010: "application_layer_protocol_negotiation",
+        0x0011: "status_request_v2",
+        0x0012: "signed_certificate_timestamp",
+        0x0013: "client_certificate_type",
+        0x0014: "server_certificate_type",
+        0x0015: "padding",
+        0x0016: "encrypt_then_mac",
+        0x0017: "extended_master_secret",
+        0x0018: "token_binding",
+        0x0019: "cached_info",
+        0x0023: "session_ticket",
+        0x0029: "pre_shared_key",
+        0x002A: "early_data",
+        0x002B: "supported_versions",
+        0x002C: "cookie",
+        0x002D: "psk_key_exchange_modes",
+        0x002F: "certificate_authorities",
+        0x0030: "oid_filters",
+        0x0031: "post_handshake_auth",
+        0x0032: "signature_algorithms_cert",
+        0x0033: "key_share",
+        0xFF01: "renegotiation_info",
     }
     return extensions.get(ext_type, f"unknown_{ext_type}")
 
@@ -186,6 +187,7 @@ def compute_ja4(client_hello: Dict) -> str:
         ext["raw_type"]
         for ext in client_hello["extensions"]
         if ext["raw_type"] not in [0x0000, 0x0010]
+        and (ext["raw_type"] & 0x0F0F) != 0x0A0A
     ]
     ext_hex = [f"{x:04x}" for x in ext_types]
     ext_hex.sort()
@@ -231,13 +233,19 @@ def compute_ja4(client_hello: Dict) -> str:
 
     # Get TLS version (13 for TLS 1.3, etc)
     tls_version = client_hello["tls_version"]
-    version_num = "13" if tls_version == "0x0304" else "12"
+    version_num = "13" if tls_version == "0x0303" else "12"
 
     # Get SNI flag (d=default with SNI, i=without SNI)
     sni_flag = "d" if client_hello["has_sni"] else "i"
 
     # Get extension count (2 chars)
-    ext_count = f"{len(client_hello['extensions']):02d}"
+    # Filter out GREASE extensions (values that are 0x0a0a, 0x1a1a, etc)
+    non_grease_exts = [
+        ext
+        for ext in client_hello["extensions"]
+        if not (ext["raw_type"] & 0x0F0F == 0x0A0A)
+    ]
+    ext_count = f"{len(non_grease_exts):02d}"
 
     # Get cipher suite count (2 chars)
     cs_count = f"{len(cipher_suites):02d}"
@@ -270,6 +278,8 @@ def main():
             client_hello = parse_client_hello(data)
 
             print("\nTLS Client Hello Details:")
+            print(f"TLS Version: {client_hello['tls_version']}")
+            print(f"SNI: {client_hello['has_sni']}")
             print("\nCipher Suites:")
             for cs in client_hello["cipher_suites"]:
                 print(f"  0x{cs:04x}")
