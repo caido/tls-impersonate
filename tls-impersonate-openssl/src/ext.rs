@@ -36,7 +36,7 @@ impl SslContextBuilderExt for SslContextBuilder {
         unsafe {
             cvt(ffi::SSL_CTX_enable_ct(
                 self.as_ptr(),
-                ffi::SSL_CT_VALIDATION_STRICT,
+                ffi::SSL_CT_VALIDATION_PERMISSIVE,
             ))
             .map(|_| ())
         }
