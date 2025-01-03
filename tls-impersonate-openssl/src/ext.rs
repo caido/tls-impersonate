@@ -1,7 +1,9 @@
-use std::ffi::{c_int, c_long};
+use std::{
+    ffi::{c_int, c_long},
+    ptr,
+};
 
 use openssl::{error::ErrorStack, ssl::SslContextBuilder};
-use openssl_sys::TLSEXT_STATUSTYPE_ocsp;
 
 use crate::sys as ffi;
 
@@ -42,9 +44,11 @@ impl SslContextBuilderExt for SslContextBuilder {
 
     fn enable_ocsp_stapling(&self) -> Result<(), ErrorStack> {
         unsafe {
-            cvt_long(ffi::SSL_CTX_set_tlsext_status_type(
+            cvt_long(ffi::SSL_CTX_ctrl(
                 self.as_ptr(),
-                TLSEXT_STATUSTYPE_ocsp,
+                ffi::SSL_CTRL_SET_TLSEXT_STATUS_REQ_TYPE,
+                ffi::TLSEXT_STATUSTYPE_ocsp as c_long,
+                ptr::null_mut(),
             ))
             .map(|_| ())
         }
