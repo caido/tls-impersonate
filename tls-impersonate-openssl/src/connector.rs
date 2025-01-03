@@ -4,7 +4,7 @@ use openssl::{
 };
 use tls_impersonate::TlsVersion;
 
-use crate::OpensslSettings;
+use crate::{OpensslSettings, SslContextBuilderExt};
 
 type Result<T> = std::result::Result<T, ErrorStack>;
 
@@ -49,7 +49,21 @@ impl OpensslConnector {
         // Set the cipher list if it is set.
         if let Some(ciphers) = settings.ciphers.as_ref() {
             builder.set_cipher_list(ciphers)?;
-            builder.set_ciphersuites(ciphers)?;
+        }
+
+        // Enable signed cert timestamps if it is set.
+        if settings.enable_signed_cert_timestamps {
+            builder.enable_signed_cert_timestamps()?;
+        }
+
+        // Set the encrypt then mac option
+        if let Some(false) = settings.encrypt_then_mac {
+            builder.set_options(SSL_OP_NO_ENCRYPT_THEN_MAC);
+        }
+
+        // Set the padding option
+        if let Some(false) = settings.padding {
+            builder.clear_options(SSL_OP_TLSEXT_PADDING);
         }
 
         Ok(Self {
@@ -66,6 +80,9 @@ impl OpensslConnector {
         Ok(config)
     }
 }
+
+const SSL_OP_NO_ENCRYPT_THEN_MAC: SslOptions = SslOptions::from_bits_retain(0x00080000);
+const SSL_OP_TLSEXT_PADDING: SslOptions = SslOptions::from_bits_retain(0x00000010);
 
 fn ssl_version(version: &TlsVersion) -> SslVersion {
     match version {

@@ -1,0 +1,15 @@
+[package]
+name = "tls-impersonate-test"
+version = "0.1.0"
+authors = ["Caido Labs Inc. <dev@caido.io>"]
+description = "Library for TLS impersonification"
+repository = "https://github.com/caido/tls-impersonate"
+license = "MIT"
+edition = "2021"
+
+[dependencies]
+anyhow = "1"
+parking_lot = "0.12"
+sha2 = "0.10"
+tokio = { version = "1", features = ["full"] }
+tokio-util = { version = "0.7", features = ["full"] }

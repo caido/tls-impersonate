@@ -7,7 +7,7 @@ use crate::{
     SslCurve, TlsVersion,
 };
 
-#[derive(TypedBuilder, Default, Clone)]
+#[derive(TypedBuilder, Default, Clone, Debug)]
 pub struct TlsSettings {
     /// Root certificates store.
     // #[builder(default)]
@@ -36,11 +36,11 @@ pub struct TlsSettings {
     )]
     pub alpn_protos: Cow<'static, [u8]>,
 
-    /// No session ticket
+    /// Session ticket
     ///
     /// Session ticket is a way to resume a TLS session without having to perform a full handshake.
     /// This is enabled by default.
-    #[builder(default, setter(into))]
+    #[builder(default, setter(transform = |input: bool| Some(input)))]
     pub session_ticket: Option<bool>,
 
     /// The minimum TLS version to use.
@@ -118,10 +118,6 @@ pub struct TlsSettings {
     #[builder(default, setter(into))]
     pub cert_compression_algorithm: Option<Cow<'static, [CertCompressionAlgorithm]>>,
 
-    /// PSK with no session ticket.
-    #[builder(default = false)]
-    pub psk_skip_session_ticket: bool,
-
     /// The key shares length limit.
     #[builder(default, setter(into))]
     pub key_shares_length_limit: Option<u8>,
@@ -131,4 +127,19 @@ pub struct TlsSettings {
     /// Allows to specify the order of the extensions in the ClientHello message.
     #[builder(default, setter(into))]
     pub extension_permutation: Option<Cow<'static, [ExtensionType]>>,
+
+    /// Encrypt then MAC
+    ///
+    /// A TLS extension that changes the order of operations to apply MAC after encryption, rather than before.
+    /// This provides better security against padding oracle attacks in CBC mode ciphersuites by ensuring the MAC
+    /// covers the entire encrypted content.
+    #[builder(default, setter(transform = |input: bool| Some(input)))]
+    pub encrypt_then_mac: Option<bool>,
+
+    /// Enable padding.
+    ///
+    /// Padding is a technique used to ensure the length of a message is a multiple of the block size of the cipher.
+    /// This is used to prevent certain attacks, such as padding oracle attacks.
+    #[builder(default, setter(transform = |input: bool| Some(input)))]
+    pub padding: Option<bool>,
 }

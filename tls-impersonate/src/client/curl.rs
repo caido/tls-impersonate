@@ -37,9 +37,13 @@ pub mod curl_7_61_1 {
         TlsSettings::builder()
             .min_tls_version(TlsVersion::TLS1_0)
             .max_tls_version(TlsVersion::TLS1_3)
+            .session_ticket(false)
+            .alpn_protos(&[])
             .ciphers(CIPHERS)
             .signature_algorithms(SIGNATURE_ALGORITHMS)
             .enable_signed_cert_timestamps(true)
+            .encrypt_then_mac(false)
+            .padding(false)
             .build()
     }
 }

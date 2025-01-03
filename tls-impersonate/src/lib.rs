@@ -9,10 +9,10 @@ pub use self::version::TlsVersion;
 
 mod alpn;
 mod cipher;
+pub mod client;
 mod compression;
 mod curve;
 mod extension;
-pub mod impersonate;
 mod settings;
 mod signature;
 mod version;

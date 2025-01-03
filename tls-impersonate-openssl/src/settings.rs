@@ -1,9 +1,11 @@
 use std::borrow::Cow;
 
-use tls_impersonate::{AlpnProtocol, CipherSuite, SignatureAlgorithm, SslCurve, TlsVersion};
+use tls_impersonate::{
+    AlpnProtocol, CipherSuite, SignatureAlgorithm, SslCurve, TlsSettings, TlsVersion,
+};
 use typed_builder::TypedBuilder;
 
-#[derive(TypedBuilder, Default, Clone)]
+#[derive(TypedBuilder, Default, Clone, Debug)]
 pub struct OpensslSettings {
     /// Root certificates store.
     // #[builder(default)]
@@ -82,11 +84,43 @@ pub struct OpensslSettings {
     #[builder(default = false)]
     pub enable_signed_cert_timestamps: bool,
 
-    /// PSK with no session ticket.
-    #[builder(default = false)]
-    pub psk_skip_session_ticket: bool,
-
     /// The key shares length limit.
     #[builder(default, setter(into))]
     pub key_shares_length_limit: Option<u8>,
+
+    /// Encrypt then MAC
+    ///
+    /// A TLS extension that changes the order of operations to apply MAC after encryption, rather than before.
+    /// This provides better security against padding oracle attacks in CBC mode ciphersuites by ensuring the MAC
+    /// covers the entire encrypted content.
+    #[builder(default, setter(into))]
+    pub encrypt_then_mac: Option<bool>,
+
+    /// Enable padding.
+    ///
+    /// Padding is a technique used to ensure the length of a message is a multiple of the block size of the cipher.
+    /// This is used to prevent certain attacks, such as padding oracle attacks.
+    #[builder(default, setter(transform = |input: bool| Some(input)))]
+    pub padding: Option<bool>,
+}
+
+impl From<TlsSettings> for OpensslSettings {
+    fn from(settings: TlsSettings) -> Self {
+        Self {
+            certs_verification: settings.certs_verification,
+            tls_sni: settings.tls_sni,
+            alpn_protos: settings.alpn_protos,
+            session_ticket: settings.session_ticket,
+            min_tls_version: settings.min_tls_version,
+            max_tls_version: settings.max_tls_version,
+            enable_ocsp_stapling: settings.enable_ocsp_stapling,
+            curves: settings.curves,
+            signature_algorithms: settings.signature_algorithms,
+            ciphers: settings.ciphers,
+            enable_signed_cert_timestamps: settings.enable_signed_cert_timestamps,
+            key_shares_length_limit: settings.key_shares_length_limit,
+            encrypt_then_mac: settings.encrypt_then_mac,
+            padding: settings.padding,
+        }
+    }
 }
