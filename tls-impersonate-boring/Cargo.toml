@@ -1,0 +1,15 @@
+[package]
+name = "tls-impersonate-boring"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+boring = "5.1.0"
+brotli = "8.0.4"
+bytes = "1.12.1"
+flate2 = "1.1.9"
+zstd = "0.13.3"
+
+[dev-dependencies]
+tokio = { version = "1.53.1", features = ["full"] }
+tokio-boring = "5.0.0"

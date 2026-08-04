@@ -1,0 +1,34 @@
+macro_rules! set_bool {
+    ($cfg:expr, $field:ident, $conn:expr, $setter:ident) => {
+        if $cfg.$field {
+            $conn.$setter();
+        }
+    };
+    ($cfg:expr, !$field:ident, $conn:expr, $setter:ident, $arg:expr) => {
+        if !$cfg.$field {
+            $conn.$setter($arg);
+        }
+    };
+}
+
+macro_rules! set_option {
+    ($cfg:expr, $field:ident, $conn:expr, $setter:ident) => {
+        if let Some(val) = $cfg.$field {
+            $conn.$setter(val);
+        }
+    };
+}
+
+macro_rules! set_option_ref_try {
+    ($cfg:expr, $field:ident, $conn:expr, $setter:ident) => {
+        if let Some(val) = $cfg.$field.as_ref() {
+            $conn.$setter(val)?;
+        }
+    };
+}
+
+macro_rules! join {
+    ($sep:expr, $first:expr $(, $rest:expr)*) => {
+        concat!($first $(, $sep, $rest)*)
+    };
+}
